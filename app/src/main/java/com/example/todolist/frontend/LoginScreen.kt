@@ -9,6 +9,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -32,93 +33,85 @@ import com.example.todolist.models.LoginRequest
 import com.example.todolist.utils.TokenManager
 import com.example.todolist.viewModels.LoginScreenViewModel
 import com.example.todolist.viewModels.LoginState
+import androidx.compose.runtime.collectAsState
+import com.example.todolist.Register
 
 @Composable
 fun LoginScreen(navController: NavController) {
+    val context = LocalContext.current
+    val tokenManager = remember { TokenManager(context) }
 
-    val context= LocalContext.current
-    val tokenManager= remember{ TokenManager(context) }
-
+    // 1. Move the Factory or use a cleaner approach
     val viewModel: LoginScreenViewModel = viewModel(
         factory = object : ViewModelProvider.Factory {
             override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
-                @Suppress("UNCHECKED_CAST")
                 return LoginScreenViewModel(APIservice, tokenManager) as T
             }
         }
     )
-    var userName by remember{ mutableStateOf("") }
-    var password by remember{ mutableStateOf("") }
 
-    //LaunchedEffect is used to observe the login state changes .
-    //Launched Effect  is the function that runs code when the screen loads or when a value changes .
+    // 2. COLLECT ONCE AT THE TOP
+    // Use collectAsStateWithLifecycle() if you have the lifecycle-runtime-compose dependency (standard in 2025)
+    val loginState by viewModel.loginState.collectAsState()
 
-    LaunchedEffect(viewModel.loginState.value) {
-        if(viewModel.loginState.value is LoginState.Success){
-            navController.navigate(Home.route){
-                popUpTo(Login.route){
-                    inclusive= true
-                }
+    var userName by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+
+    // 3. CLEAN LAUNCHEDEFFECT
+    // We react when the loginState changes.
+    LaunchedEffect(loginState) {
+        if (loginState is LoginState.Success) {
+            tokenManager.saveUsername(userName)
+            navController.navigate(Home.route) {
+                popUpTo(Login.route) { inclusive = true }
             }
-
         }
     }
+
     Column(
-        modifier= Modifier
-            .fillMaxSize()
-            .padding(16.dp),
+        modifier = Modifier.fillMaxSize().padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-
-
         OutlinedTextField(
-            value= userName,
-            onValueChange = { userName=it},
+            value = userName,
+            onValueChange = { userName = it },
             label = { Text("Username") },
-
-            modifier = Modifier.fillMaxWidth()
-                .padding(bottom= 20.dp)
+            modifier = Modifier.fillMaxWidth().padding(bottom = 20.dp)
         )
-        
 
         OutlinedTextField(
-            value= password,
-            onValueChange = {password = it },
+            value = password,
+            onValueChange = { password = it },
             label = { Text("Password") },
             visualTransformation = PasswordVisualTransformation(),
-            modifier = Modifier.fillMaxWidth()
-                .padding(bottom= 20.dp)
+            modifier = Modifier.fillMaxWidth().padding(bottom = 20.dp)
         )
 
-
-//Show loading or error
-        when (val state= viewModel.loginState.value){
+        // 4. USE THE DELEGATED STATE (No .value everywhere)
+        when (val state = loginState) {
             is LoginState.Error -> {
-                Text(
-                    text= state.message,
-                    color= Color.Red
-                )
+                Text(text = state.message, color = Color.Red)
             }
-            is LoginState.Loading ->{
-                CircularProgressIndicator(modifier= Modifier.padding(16.dp))
-
+            is LoginState.Loading -> {
+                CircularProgressIndicator(modifier = Modifier.padding(16.dp))
             }
             else -> {}
         }
+
         Button(
             onClick = { viewModel.login(userName, password) },
-            enabled = viewModel.loginState.value !is LoginState.Loading
+            enabled = loginState !is LoginState.Loading // Clean comparison
         ) {
             Text(text = "Login")
         }
+
+        // Bottom action to navigate to Register screen
+        TextButton(onClick = {
+            navController.navigate(Register.route)
+        }) {
+            Text(text = "Don’t have an account? Create one.")
+        }
+
+
     }
-
-
-
 }
-//
-//@Preview(showBackground = true)
-//@Composable
-//fun LoginScreenPreview() {
-//    LoginScreen()
-//}

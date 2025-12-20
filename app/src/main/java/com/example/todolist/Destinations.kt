@@ -15,3 +15,11 @@ object Home : Destinations {
 object CreateNote: Destinations {
     override val route: String= "create_note"
 }
+
+object Register: Destinations {
+    override val route: String= "register"
+}
+
+object Profile: Destinations {
+    override val route: String= "profile"
+}

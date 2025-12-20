@@ -1,5 +1,6 @@
 package com.example.todolist.frontend
 
+import android.R
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -18,10 +19,12 @@ import com.example.todolist.utils.TokenManager
 import kotlinx.coroutines.launch
 
 @Composable
-fun AfterLoggedIn(navController: NavController, username: String) {
+fun ProfileScreen(navController: NavController,userName: String) {
     val context = LocalContext.current
     val tokenManager= TokenManager(context)
     val scope = rememberCoroutineScope()
+
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -36,13 +39,14 @@ fun AfterLoggedIn(navController: NavController, username: String) {
         )
 
         Text(
-            text = "Hi, $username",
+            text = "Hi, $userName",
             style = MaterialTheme.typography.headlineSmall
         )
         Button (onClick = {
 
                 scope.launch{
                     tokenManager.clearToken()
+                    tokenManager.removeUsername()
                     navController.navigate("login"){
                         popUpTo("home"){
                             inclusive= true

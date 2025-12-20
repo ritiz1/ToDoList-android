@@ -30,6 +30,20 @@ class HomeScreenViewModel(private val apiService : APIservice): ViewModel(){
             _notesState.value= NotesState.Error(e.message ?: "An unexpected error occurred")
         }
     }
+
+    fun clearNotes(token:String , noteId :Int?){
+        _notesState.value= NotesState.Loading
+        try{
+            viewModelScope.launch {
+                apiService.deleteNote(token, noteId)
+                val notes = apiService.getNotes(token)
+                _notesState.value= NotesState.Success(notes)
+
+            }
+        } catch (e:Exception){
+            _notesState.value= NotesState.Error(e.message ?: "An unexpected error occurred")
+        }
+    }
 }
 
 

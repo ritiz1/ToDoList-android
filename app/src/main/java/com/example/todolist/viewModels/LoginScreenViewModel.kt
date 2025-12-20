@@ -6,6 +6,8 @@ import androidx.lifecycle.viewModelScope
 import com.example.todolist.backend.APIservice
 import com.example.todolist.models.LoginRequest
 import com.example.todolist.utils.TokenManager
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 
@@ -15,8 +17,8 @@ class LoginScreenViewModel(
     private val tokenManager: TokenManager
 ): ViewModel() {
 
-    private val _loginState = mutableStateOf<LoginState>(LoginState.Idle)
-    val loginState = _loginState
+    private val _loginState = MutableStateFlow<LoginState>(LoginState.Idle)
+    val loginState: StateFlow<LoginState> = _loginState
 
     //Checking if user is already logged in
     init {

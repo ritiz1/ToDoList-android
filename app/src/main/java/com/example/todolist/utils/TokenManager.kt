@@ -13,6 +13,7 @@ private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(na
 class TokenManager(private val context: Context) {
     companion object {
         private val TOKEN_KEY = stringPreferencesKey("access_token")
+        private val USERNAME_KEY = stringPreferencesKey("username")
     }
 
     suspend fun saveToken(token: String) {
@@ -24,6 +25,23 @@ class TokenManager(private val context: Context) {
     val token: Flow<String?> = context.dataStore.data.map { preferences ->
         preferences[TOKEN_KEY]
     }
+
+    suspend fun saveUsername(username: String) {
+        context.dataStore.edit { preferences ->
+            preferences[USERNAME_KEY] = username
+        }
+    }
+
+    val username: Flow<String?> = context.dataStore.data.map { preferences ->
+        preferences[USERNAME_KEY]
+    }
+
+    suspend fun removeUsername() {
+        context.dataStore.edit { preferences ->
+            preferences.remove(USERNAME_KEY)
+        }
+    }
+
 
     suspend fun clearToken() {
         context.dataStore.edit { preferences ->
